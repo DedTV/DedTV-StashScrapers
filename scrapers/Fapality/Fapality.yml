@@ -1,0 +1,81 @@
+name: Fapality
+
+sceneByName:
+  action: scrapeXPath
+  queryURL: https://fapality.com/search/?q={}&sort_by=relevance
+  scraper: sceneSearch
+
+sceneByQueryFragment:
+  action: scrapeXPath
+  queryURL: "{url}"
+  scraper: sceneScraper
+
+sceneByURL:
+  - action: scrapeXPath
+    url:
+      - fapality.com
+    scraper: sceneScraper
+
+sceneByFragment:
+  action: scrapeXPath
+  scraper: sceneScraper
+  queryURL: https://fapality.com/{filename}/
+  queryURLReplace:
+    filename:
+      - regex: '.*\[(\d+)\].*'
+        with: $1
+      - regex: '^.*?(\d+)\..+$'
+        with: $1
+
+xPathScrapers:
+  sceneSearch:
+    common:
+      $videoCard: '//li[contains(@class, "masonry-item")]'
+    scene:
+      Title: 
+        selector: '$videoCard//a[contains(@class, "popfire")]/@title'
+      URL: 
+        selector: '$videoCard//a[contains(@class, "popfire")]/@href'
+      Image: 
+        selector: '$videoCard//img/@src'
+
+  sceneScraper:
+    scene:
+      Title: 
+        selector: '//meta[@property="og:title"]/@content | //h1[contains(@class, "simple-title")]/text()'
+        postProcess:
+          - replace:
+              - regex: '(?i)\s*-\s*Fapality\.com.*'
+                with: ""
+      Details: '//meta[@name="description"]/@content | //div[contains(@class, "description")]/text()'
+      Date:
+        selector: '//meta[@itemprop="uploadDate"]/@content | //script[@type="application/ld+json" and contains(., "uploadDate")]/text()'
+        postProcess:
+          - replace:
+              - regex: '.*"uploadDate":\s*"([^"]+)".*'
+                with: $1
+              - regex: '(\d{4}-\d{2}-\d{2})T.*'
+                with: $1
+          - parseDate: 2006-01-02
+      Image: '//meta[@property="og:image"]/@content'
+      URL: '//link[@rel="canonical"]/@href'
+      Studio:
+        Name:
+          # Target the title tag as a reliable anchor
+          selector: //title/text()
+          postProcess:
+            - replace:
+                # This regex matches the entire string and replaces it with your static value
+                - regex: '.*'
+                  with: "TubeVideos"
+      Tags:
+        Name:
+          selector: '//ul[contains(@class, "tags_list")]//a[not(contains(@class, "main"))]/text() | //meta[@property="video:tag"]/@content'
+      Performers:
+        Name:
+          selector: '//div[contains(@class, "content_source")]//a[contains(@href, "/pornstars/")]/@title | //div[contains(@class, "content_source")]//a[contains(@href, "/pornstars/")]/text()'
+          postProcess:
+            - replace:
+                - regex: '(?i)\s*videos'
+                  with: ""
+                  # Last Updated June 1, 2025

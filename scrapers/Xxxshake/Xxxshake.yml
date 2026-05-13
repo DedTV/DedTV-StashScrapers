@@ -1,0 +1,79 @@
+name: Xxxshake
+
+sceneByName:
+  action: scrapeXPath
+  queryURL: https://xxxshake.com/search/{}/
+  scraper: sceneSearch
+
+sceneByQueryFragment:
+  action: scrapeXPath
+  queryURL: "{url}"
+  scraper: sceneScraper
+
+sceneByURL:
+  - action: scrapeXPath
+    url:
+      - xxxshake.com
+    scraper: sceneScraper
+
+sceneByFragment:
+  action: scrapeXPath
+  scraper: sceneScraper
+  queryURL: https://xxxshake.com/video/{filename}/
+  queryURLReplace:
+    filename:
+      - regex: '.*\[(\d+)\].*'
+        with: $1
+      - regex: '^.*?(\d+)\..+$'
+        with: $1
+      - regex: .*\.[^\.]+$
+        with:
+
+xPathScrapers:
+  sceneSearch:
+    common:
+      $videoCard: '//div[contains(@class, "item")]'
+    scene:
+      Title: 
+        selector: '$videoCard//strong[@class="title"]/text()'
+      URL: 
+        selector: '$videoCard//a[contains(@class, "popcorn")]/@href'
+      Image: 
+        selector: '$videoCard//img/@src'
+
+  sceneScraper:
+    scene:
+      # Updated Title selector to check meta tags and common H1 locations
+      Title: 
+        selector: '//meta[@property="og:title"]/@content | //h1[contains(@class, "page-title")]/text() | //h1/text()'
+        postProcess:
+          - replace:
+              # Clean up " - Xxxshake.com" if it's scraped from the meta title
+              - regex: '(?i)\s*-\s*Xxxshake\.com.*'
+                with: ""
+      Details: '//meta[@name="description"]/@content'
+      Date:
+        selector: '//script[@type="application/ld+json" and contains(., "uploadDate")]/text()'
+        postProcess:
+          - replace:
+              - regex: '.*"uploadDate":\s*"([^"]+)".*'
+                with: $1
+              - regex: '(\d{4}-\d{2}-\d{2})T.*'
+                with: $1
+          - parseDate: 2006-01-02
+      Image: '//meta[@property="og:image"]/@content'
+      URL: '//meta[@property="og:url"]/@content'
+      Studio:
+        Name:
+          # Target the title tag as a reliable anchor
+          selector: //title/text()
+          postProcess:
+            - replace:
+                # This regex matches the entire string and replaces it with your static value
+                - regex: '.*'
+                  with: "TubeVideos"
+      Tags:
+        Name: '//div[contains(@class, "meta-data")]//a[contains(@href, "/categories/") or contains(@href, "/tags/")]/text()'
+      Performers:
+        Name: '//div[contains(@class, "meta-data")]//a[contains(@href, "/models/")]/text()'
+        # Last Updated April 30, 2026

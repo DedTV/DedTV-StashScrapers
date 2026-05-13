@@ -1,0 +1,79 @@
+name: W4nkr
+
+sceneByName:
+  action: scrapeXPath
+  queryURL: https://w4nkr.com/search/{}/
+  scraper: sceneSearch
+
+sceneByQueryFragment:
+  action: scrapeXPath
+  queryURL: "{url}"
+  scraper: sceneScraper
+
+sceneByURL:
+  - action: scrapeXPath
+    url:
+      - w4nkr.com
+    scraper: sceneScraper
+
+sceneByFragment:
+  action: scrapeXPath
+  scraper: sceneScraper
+  queryURL: https://w4nkr.com/video/{filename}/
+  queryURLReplace:
+    filename:
+      - regex: '.*\[(\d+)\].*'
+        with: $1
+      - regex: '^.*?(\d+)\..+$'
+        with: $1
+      - regex: .*\.[^\.]+$
+        with:
+
+xPathScrapers:
+  sceneSearch:
+    common:
+      $videoCard: '//div[contains(@class, "video-item")] | //div[a[contains(@href, "/video/")]]'
+    scene:
+      Title: 
+        selector: '$videoCard//a[contains(@href, "/video/")]/following-sibling::a[1]/text() | $videoCard//a[contains(@href, "/video/")]/@title'
+      URL: 
+        selector: '$videoCard//a[contains(@href, "/video/")]/@href'
+      Image: 
+        selector: '$videoCard//div[@class="card-img"]/img/@srcset | $videoCard//div[@class="card-img"]/img/@src'
+
+  sceneScraper:
+    scene:
+      # Updated Title selector to check meta tags and common H1 locations
+      Title: 
+        selector: '//h1/text() | //meta[@property="og:title"]/@content'
+        postProcess:
+          - replace:
+              # Clean up " - W4nkr.com" if it's scraped from the meta title
+              - regex: '(?i)\s*-\s*W4nkr\.com.*'
+                with: ""
+      Details: '//div[contains(@class, "video-info")]//p[contains(@class, "description")]/text()'
+      Date:
+        selector: '//script[@type="application/ld+json" and contains(., "uploadDate")]/text()'
+        postProcess:
+          - replace:
+              - regex: '.*"uploadDate":\s*"([^"]+)".*'
+                with: $1
+              - regex: '(\d{4}-\d{2}-\d{2})T.*'
+                with: $1
+          - parseDate: 2006-01-02
+      Image: '//meta[@property="og:image"]/@content'
+      URL: '//meta[@property="og:url"]/@content'
+      Studio:
+        Name:
+          # Target the title tag as a reliable anchor
+          selector: //title/text()
+          postProcess:
+            - replace:
+                # This regex matches the entire string and replaces it with your static value
+                - regex: '.*'
+                  with: "TubeVideos"
+      Tags:
+        Name: '//div[contains(@class, "tags")]//a/text()'
+      Performers:
+        Name: '//div[contains(@class, "models")]//a/text()'
+                # Last Updated May 3, 2026

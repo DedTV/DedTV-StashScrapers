@@ -1,0 +1,11 @@
+name: OrganizedFilenames
+# requires: py_common
+
+# This scraper extracts metadata from filenames that have been named with renamerOnUpdate using the template: {($studio).}{$date.}{$performer.}{$title} {[$tags]}
+
+sceneByFragment:
+  action: script
+  script:
+    - python3
+    - OrganizedFilenames.py
+    - scrape_filename

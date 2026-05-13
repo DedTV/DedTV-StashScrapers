@@ -1,0 +1,79 @@
+name: Pornlib
+sceneByName:
+  action: scrapeXPath
+  queryURL: https://pornlib.com/search/videos/{}
+  scraper: sceneSearch
+sceneByQueryFragment:
+  action: scrapeXPath
+  queryURL: "{url}"
+  scraper: sceneScraper
+sceneByURL:
+  - action: scrapeXPath
+    url:
+      - pornlib.com
+    scraper: sceneScraper
+sceneByFragment:
+  action: scrapeXPath
+  scraper: sceneScraper
+  queryURL: https://pornlib.com/video/{filename}/
+  queryURLReplace:
+    filename:
+      - regex: '.*\[(\d+)\].*'
+        with: $1
+      - regex: '^.*?(\d+)\..+$'
+        with: $1
+      - regex: .*\.[^\.]+$
+        with:
+xPathScrapers:
+  sceneSearch:
+    common:
+      $videoCard: '//div[contains(@class, "thumb")]'
+    scene:
+      Title: 
+        selector: '$videoCard//span[@class="title"]/a/@title'
+      URL: 
+        selector: '$videoCard//a[contains(@class, "wrap_image")]/@href'
+        postProcess:
+          - replace:
+              - regex: ^/
+                with: https://www.pornlib.com/
+      Image: 
+        selector: '$videoCard//img/@src'
+  sceneScraper:
+    scene:
+      Title: 
+        selector: '//h1[@class="title"]/text()'
+      Details: '//meta[@name="description"]/@content'
+      Date:
+        selector: '//div[@class="date" and contains(text(), "Published on")]/text()'
+        postProcess:
+          - replace:
+              - regex: '(?i)Published on\s*'
+                with: ""
+          - parseDate: 02.01.2006
+      Image: '//meta[@property="og:image"]/@content'
+      URL:
+        selector: '//script[contains(text(), "var page_url =")]/text()'
+        postProcess:
+          - replace:
+              # Step 1: Extract the path between quotes
+              - regex: '.*var page_url = "(.*?)";.*'
+                with: "$1"
+              # Step 2: Manually decode %2F to /
+              - regex: '%2F'
+                with: "/"
+          - replace:
+              # Step 3: Prepend the domain to the cleaned path
+              - regex: '^'
+                with: "https://www.pornlib.com"
+      Studio:
+        Name:
+          selector: '//div[@class="item" and contains(text(), "Submitted by")]/a/text()'
+          postProcess:
+            - replace:
+                # This regex matches the entire string and replaces it with your static value
+                - regex: '.*'
+                  with: "TubeVideos"
+      Tags:
+        Name: '//div[@id="comments"]//a[contains(@class, "tag")]/text()'
+# Last Updated April 30, 2026
