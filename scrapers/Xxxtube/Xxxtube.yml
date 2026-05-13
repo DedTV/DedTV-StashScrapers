@@ -1,0 +1,72 @@
+name: Xxxtube
+sceneByName:
+  action: scrapeXPath
+  queryURL: https://x-x-x.tube/search/{}/
+  scraper: sceneSearch
+sceneByQueryFragment:
+  action: scrapeXPath
+  queryURL: "{url}"
+  scraper: sceneScraper
+sceneByURL:
+  - action: scrapeXPath
+    url:
+      - x-x-x.tube
+    scraper: sceneScraper
+sceneByFragment:
+  action: scrapeXPath
+  scraper: sceneScraper
+  queryURL: https://x-x-x.tube/video/{filename}/
+  queryURLReplace:
+    filename:
+      - regex: '.*\[(\d+)\].*'
+        with: $1
+      - regex: '^.*?(\d+)\..+$'
+        with: $1
+      - regex: .*\.[^\.]+$
+        with:
+xPathScrapers:
+  sceneSearch:
+    common:
+      $videoCard: '//div[contains(@class, "thumb-holder")]//div[contains(@class, "item")]'
+    scene:
+      Title: 
+        selector: '$videoCard//a[@title]/@title'
+      URL: 
+        selector: '$videoCard//a[1]/@href'
+        postProcess:
+          - replace:
+              - regex: ^/
+                with: https://x-x-x.tube/
+      Image: 
+        selector: '$videoCard//img/@data-original | $videoCard//img/@src'
+      Performers:
+        Name:
+          selector: '$videoCard//div[@class="model-info"]//div[@class="name"]/text()'        
+  sceneScraper:
+    scene:
+      Title: 
+        selector: '//h2[contains(@class, "video-header")]/text() | //h1/text()'
+      Details: '//meta[@name="description"]/@content'
+      Date:
+        selector: '//div[contains(@class, "video-added")]/text() | //div[contains(@class, "date")]/text() | //span[contains(text(), "Added")]/text()'
+        postProcess:
+          - replace:
+              - regex: '(?i)(Added|Published on)\s*:\s*'
+                with: ""
+          - parseDate: 02.01.2006
+      Image: '//meta[@property="og:image"]/@content'
+      URL: '//link[@rel="canonical"]/@href'
+      Studio:
+        Name:
+          selector: '//div[contains(@class, "video-info")]//a[contains(@href, "/models/") or contains(@href, "/channels/")]/text() | //div[@class="item"]//a[contains(@href, "/users/")]/text()'
+          postProcess:
+            - replace:
+                # This regex matches the entire string and replaces it with your static value
+                - regex: '.*'
+                  with: "TubeVideos"
+      Tags:
+        Name: '//div[contains(@class, "video-tags")]//a/text()'
+      Performers:
+        Name:
+          selector: '//div[contains(@class, "video-info")]//a[contains(@href, "/models/")]/text()'        
+# Last Updated April 30, 2026

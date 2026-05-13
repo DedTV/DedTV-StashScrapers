@@ -1,0 +1,9 @@
+id: Xxxtube
+name: xxxtube
+metadata: {}
+version: 2763d368
+date: "2025-07-09 04:25:03"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScrapers/stable/index.yml
+files:
+- Xxxtube.yml
