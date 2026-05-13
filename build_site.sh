@@ -74,15 +74,18 @@ buildScraper()
 }
 
 # find all yml files in ./scrapers - these are packages individually
-for f in ./scrapers/*.yml; do 
+# REMOVE OR COMMENT OUT THIS SECTION:
+# for f in ./scrapers/*.yml; do 
+#    buildScraper "$f"
+# done
+
+# KEEP THIS SECTION:
+# This finds the actual scraper files inside the subdirectories
+find ./scrapers/ -mindepth 2 -name "*.yml" -print0 | while read -d $'\0' f; do
     buildScraper "$f"
 done
 
-find ./scrapers/ -mindepth 2 -name *.yml -print0 | while read -d $'\0' f; do
-    buildScraper "$f"
-done
-
-# handle dependency packages
+# handle dependency packages (if applicable)
 find ./scrapers/ -mindepth 2 -name package -print0 | while read -d $'\0' f; do
     buildScraper "$f"
 done
