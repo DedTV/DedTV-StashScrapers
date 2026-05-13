@@ -3,11 +3,8 @@ name: Deploy repository to Github Pages
 on:
   push:
     branches: [ master ]
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
@@ -17,40 +14,45 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
-    - name: Checkout develop
-      uses: actions/checkout@v6
+    - name: Checkout
+      uses: actions/checkout@v4
       with:
-        path: develop
-        ref: master
         fetch-depth: 0
-    - name: Build develop
+
+    - name: Build Index
       run: |
-        cd develop
-        ./build_site.sh ../_site/develop
-    - name: copy develop to stable
-      run: |
-        cp -r _site/develop _site/stable
-    - uses: pnpm/action-setup@v4
+        chmod +x build_site.sh
+        # Builds the index into _site/master/index.yml
+        ./build_site.sh _site/master
+
+    - name: Setup Node and PNPM
+      uses: pnpm/action-setup@v4
       with:
-        package_json_file: develop/site_generator/package.json
-    - uses: actions/setup-node@v6
+        package_json_file: site_generator/package.json
+
+    - name: Setup Node
+      uses: actions/setup-node@v4
       with:
         node-version: latest
+
     - name: Generate html index page
       run: |
-        cd develop/site_generator
+        cd site_generator
         npm i -g ts-node
         pnpm install --frozen-lockfile
         npm run ci-build
-        cp -r site/* ../../_site/
-    - uses: actions/upload-pages-artifact@v4
+        # Copy generated HTML to the root of the deployment
+        cp -r site/* ../_site/
+
+    - name: Upload Pages Artifact
+      uses: actions/upload-pages-artifact@v3
       with:
         path: '_site'
     
   deploy:
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url }}master/index.yml
     runs-on: ubuntu-24.04
     needs: build
     steps:
