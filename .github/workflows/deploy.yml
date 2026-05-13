@@ -3,7 +3,7 @@ name: Deploy repository to Github Pages
 on:
   push:
       paths:
-      - 'plugins/**'
+      - 'scrapers/**'
       branches:
       - main
   # Allows you to run this workflow manually from the Actions tab
