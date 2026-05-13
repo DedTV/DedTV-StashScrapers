@@ -1,6 +1,4 @@
 #!/bin/bash
-# AGPLv3.0
-# https://github.com/stashapp/CommunityScripts/blob/main/LICENSE
 
 # builds a repository of scrapers
 # outputs to _site with the following structure:
@@ -16,38 +14,49 @@ fi
 rm -rf "$outdir"
 mkdir -p "$outdir"
 
-buildscraper() 
+buildScraper() 
 {
     f=$1
-    # get the scraper id from the directory
     dir=$(dirname "$f")
+
+    # get the scraper id from the filename
     scraper_id=$(basename "$f" .yml)
+    versionFile=$f
+    if [ "$scraper_id" == "package" ]; then
+        scraper_id=$(basename "$dir")
+    fi
+
+    if [ "$dir" != "./scrapers" ]; then
+        versionFile="$dir"
+    fi
 
     echo "Processing $scraper_id"
 
     # create a directory for the version
-    version=$(git log -n 1 --pretty=format:%h -- "$dir"/*)
-    updated=$(TZ=UTC0 git log -n 1 --date="format-local:%F %T" --pretty=format:%ad -- "$dir"/*)
+    IFS='|' read -r version updated < <(TZ=UTC0 git log -n 1 --date="format-local:%F %T" --pretty=format:'%h|%ad' -- "$versionFile")
     
     # create the zip file
     # copy other files
     zipfile=$(realpath "$outdir/$scraper_id.zip")
-    
-    pushd "$dir" > /dev/null
-    zip -r "$zipfile" . > /dev/null
-    popd > /dev/null
 
-    name=$(grep "^name:" "$f" | head -n 1 | cut -d' ' -f2- | sed -e 's/\r//' -e 's/^"\(.*\)"$/\1/')
-    description=$(grep "^description:" "$f" | head -n 1 | cut -d' ' -f2- | sed -e 's/\r//' -e 's/^"\(.*\)"$/\1/')
-    ymlVersion=$(grep "^version:" "$f" | head -n 1 | cut -d' ' -f2- | sed -e 's/\r//' -e 's/^"\(.*\)"$/\1/')
-    version="$ymlVersion-$version"
+    name=$(grep "^name:" "$f" | cut -d' ' -f2- | sed -e 's/\r//' -e 's/^"\(.*\)"$/\1/')
+    ignore=$(grep "^# ignore:" "$f" | cut -c 10- | sed -e 's/\r//')
     dep=$(grep "^# requires:" "$f" | cut -c 12- | sed -e 's/\r//')
+
+    # always ignore package file
+    ignore="-x $ignore package"
+
+    pushd "$dir" > /dev/null
+    if [ "$dir" != "./scrapers" ]; then
+        zip -r "$zipfile" . ${ignore} > /dev/null
+    else
+        zip "$zipfile" "$scraper_id.yml" > /dev/null
+    fi
+    popd > /dev/null
 
     # write to spec index
     echo "- id: $scraper_id
   name: $name
-  metadata:
-    description: $description
   version: $version
   date: $updated
   path: $scraper_id.zip
@@ -64,6 +73,16 @@ buildscraper()
     echo "" >> "$outdir"/index.yml
 }
 
-find ./scrapers -mindepth 1 -name *.yml | while read file; do
-    buildscraper "$file"
+# find all yml files in ./scrapers - these are packages individually
+for f in ./scrapers/*.yml; do 
+    buildScraper "$f"
+done
+
+find ./scrapers/ -mindepth 2 -name *.yml -print0 | while read -d $'\0' f; do
+    buildScraper "$f"
+done
+
+# handle dependency packages
+find ./scrapers/ -mindepth 2 -name package -print0 | while read -d $'\0' f; do
+    buildScraper "$f"
 done
