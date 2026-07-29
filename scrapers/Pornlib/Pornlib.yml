@@ -51,7 +51,7 @@ xPathScrapers:
               - regex: '(?i)Published on\s*'
                 with: ""
           - parseDate: 02.01.2006
-      Image: '//meta[@property="og:image"]/@content'
+      Image: '//div[@id="hidden_html5_block"]/video/@poster'
       URL:
         selector: '//script[contains(text(), "var page_url =")]/text()'
         postProcess:

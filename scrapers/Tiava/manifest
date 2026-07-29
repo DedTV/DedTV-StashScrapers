@@ -1,11 +1,10 @@
-id: OrganizedFilenames
-name: OrganizedFilenames
+id: Tiava
+name: Tiava
 metadata: {}
-version: d3ea057
+version: d3dd057
 date: "2026-05-13 16:09:38"
 requires: []
 source_repository: https://dedtv.github.io/DedTV-StashScrapers/master/index.yml
 files:
-- OrganizedFilenames.yml
-- OrganizedFilenames.py
+- Tiava.yml
 - manifest

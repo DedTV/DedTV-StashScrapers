@@ -1,0 +1,48 @@
+name: Tiava
+
+sceneByName:
+  action: scrapeXPath
+  queryURL: https://www.tiava.com/search/{}?pricing=free
+  scraper: sceneSearch
+
+sceneByQueryFragment:
+  action: scrapeXPath
+  queryURL: "{url}"
+  scraper: sceneSearch
+  
+sceneByURL:
+  - action: scrapeXPath
+    url:
+      - pornlib.com
+    scraper: sceneScraper
+    
+sceneByFragment:
+  action: scrapeXPath
+  scraper: sceneScraper
+  queryURL: https://www.tiava.com/video/{filename}/
+  queryURLReplace:
+    filename:
+      - regex: '.*\[(\d+)\].*'
+        with: $1
+      - regex: '^.*?(\d+)\..+$'
+        with: $1
+      - regex: .*\.[^\.]+$
+        with:
+
+xPathScrapers:
+  sceneSearch:
+    common:
+      $card: '//div[contains(@class,"card") and @data-public-id]'
+    scene:
+      Title:
+        selector: '$card//a[contains(@class,"item-title")]/@title'
+      URL:
+        selector: '$card//a[contains(@class,"item-title")]/@href'
+        postProcess:
+          - replace:
+              - regex: '^/out/'
+                with: "https://www.tiava.com/out/"
+      Studio:
+        Name:
+          selector: '$card//a[contains(@class,"item-source")]/text()[last()]'
+# Last Updated May 25, 2026

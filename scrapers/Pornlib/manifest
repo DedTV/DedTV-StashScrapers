@@ -1,9 +1,10 @@
 id: Pornlib
 name: Pornlib
 metadata: {}
-version: "77345626"
-date: "2025-10-28 01:33:48"
+version: d3ea057
+date: "2026-05-13 16:09:38"
 requires: []
-source_repository: https://stashapp.github.io/CommunityScrapers/stable/index.yml
+source_repository: https://dedtv.github.io/DedTV-StashScrapers/master/index.yml
 files:
 - Pornlib.yml
+- manifest

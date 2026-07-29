@@ -73,7 +73,8 @@ xPathScrapers:
                 - regex: '.*'
                   with: "TubeVideos"
       Tags:
-        Name: '//div[contains(@class, "tags")]//a/text()'
+        Name: 
+          selector: //a[contains(@class, "top-player-item")]/text()
       Performers:
         Name: '//div[contains(@class, "models")]//a/text()'
                 # Last Updated May 3, 2026

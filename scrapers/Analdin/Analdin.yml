@@ -1,0 +1,68 @@
+name: Analdin
+
+sceneByName:
+  action: scrapeXPath
+  queryURL: https://www.analdin.xxx/search/?q={}
+  scraper: sceneSearch
+
+sceneByQueryFragment:
+  action: scrapeXPath
+  queryURL: "{url}"
+  scraper: sceneScraper
+
+sceneByURL:
+  - action: scrapeXPath
+    url:
+      - analdin.com
+      - analdin.xxx
+    scraper: sceneScraper
+
+sceneByFragment:
+  action: scrapeXPath
+  scraper: sceneScraper
+  queryURL: https://www.analdin.xxx/videos/{filename}/
+  queryURLReplace:
+    filename:
+      - regex: '.*\[(\d+)\].*'
+        with: $1
+      - regex: '^.*?(\d+)\..+$'
+        with: $1
+      - regex: .*\.[^\.]+$
+        with:
+
+xPathScrapers:
+  sceneSearch:
+    common:
+      $videoCard: '//div[contains(@class,"item")][@class!="item-details"]'
+    scene:
+      Title:
+        selector: '$videoCard//strong[@class="title"]/text()'
+      URL:
+        selector: '$videoCard//a[@class="popup-video-link"]/@href'
+      Image:
+        selector: '$videoCard//a[@class="popup-video-link"]/@thumb'
+
+  sceneScraper:
+    scene:
+      Title:
+        selector: '//div[@class="headline"]/h2/text()'
+      Details:
+        selector: '//div[@class="block-details"]//div[@class="item"]/em/text()'
+      Tags:
+        Name:
+          selector: '//div[@class="block-details"]//div[@class="item"][span[contains(text(),"Categories")]]/div/a/text()'
+      Studio:
+        Name:
+          fixed: "TubeVideos"
+      Performers:
+        Name:
+          selector: '//div[@class="block-details"]//div[@class="item"][span[contains(text(),"Models")]]/div/a/text()'
+      Image:
+        selector: '//script[contains(.,"preview_url:")]/text()'
+        postProcess:
+          - replace:
+              - regex: '.*\bpreview_url:\s*''([^'']+)''.*'
+                with: $1
+      URL:
+        selector: '//link[@rel="canonical"]/@href'
+# Last Updated May 25, 2026

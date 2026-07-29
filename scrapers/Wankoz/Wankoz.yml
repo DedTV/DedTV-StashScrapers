@@ -1,8 +1,8 @@
-name: Mylust
+name: Wankoz
 
 sceneByName:
   action: scrapeXPath
-  queryURL: https://mylust.com/search/?q={}&sort_by=relevance
+  queryURL: https://www.wankoz.com/search/?q={}
   scraper: sceneSearch
 
 sceneByQueryFragment:
@@ -13,13 +13,13 @@ sceneByQueryFragment:
 sceneByURL:
   - action: scrapeXPath
     url:
-      - mylust.com
+      - wankoz.com
     scraper: sceneScraper
 
 sceneByFragment:
   action: scrapeXPath
   scraper: sceneScraper
-  queryURL: https://mylust.com/video/{filename}/
+  queryURL: https://www.wankoz.com/videos/{filename}/
   queryURLReplace:
     filename:
       - regex: '.*\[(\d+)\].*'
@@ -32,33 +32,32 @@ sceneByFragment:
 xPathScrapers:
   sceneSearch:
     common:
-      $videoCard: '//div[contains(@class, "item")]'
+      $videoCard: '//div[@class="thumbs-list"]//div[@class="thumb"]'
     scene:
-      Title: 
-        selector: '$videoCard//strong[@class="title"]/text()'
-      URL: 
-        selector: '$videoCard//a[contains(@class, "popfire")]/@href'
-      Image: 
-        selector: '$videoCard//img/@src'
+      Title:
+        selector: '$videoCard//span[@class="info-inner"]/a/b/text()'
+      URL:
+        selector: '$videoCard//span[@class="info-inner"]/a/@href'
+      Image:
+        selector: '$videoCard//span[@class="img"]/img/@data-original'
 
   sceneScraper:
     scene:
-      Title: 
-        selector: '//div[@id="fluid_theatre"]//div[@class="page-title"]/h1/text()'
+      Title:
+        selector: '//div[@class="heading"]/h1/text()'
         postProcess:
           - replace:
-              - regex: '(?i)\s*-\s*Mylust\.com.*'
+              - regex: '\s+$'
                 with: ""
       Tags:
         Name:
-          selector: '//div[contains(@class, "video-tags")]//div[contains(@class, "swiper-slide")]/a/text()'
-      Details: '//div[@class="video-info-section"]//p[@class="description"]/text()'
+          selector: '//div[@class="video-tags"]/a/text()'
+      Details:
+        selector: '//div[@class="block-more"]/div[@class="row"]/span[@class="desc"]/text()'
       Date:
-        selector: '//script[@type="application/ld+json" and contains(., "uploadDate")]/text()'
+        selector: '//div[@class="block-player"]//meta[@itemprop="uploadDate"]/@content'
         postProcess:
           - replace:
-              - regex: '.*"uploadDate":\s*"([^\"]+)\".*'
-                with: $1
               - regex: '(\d{4}-\d{2}-\d{2})T.*'
                 with: $1
           - parseDate: 2006-01-02
@@ -66,11 +65,13 @@ xPathScrapers:
       URL: '//meta[@property="og:url"]/@content'
       Studio:
         Name:
-          selector: //title/text()
+          selector: '//div[@class="heading"]/h1/text()'
           postProcess:
             - replace:
+                # This regex matches the entire string and replaces it with your static value
                 - regex: '.*'
                   with: "TubeVideos"
       Performers:
-        Name: '//div[@class="item-models-holder"]//a/text()'
-# Last Updated April 30, 2026
+        Name:
+          selector: '//div[@class="video-info"]//a[@class="member"]/text()'
+# Last Updated May 25, 2026

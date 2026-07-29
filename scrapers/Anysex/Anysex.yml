@@ -2,7 +2,7 @@ name: Anysex
 
 sceneByName:
   action: scrapeXPath
-  queryURL: https://anysex.com/search/?q={}&sort_by=relevance
+  queryURL: https://anysex.com/search/?q={}
   scraper: sceneSearch
 
 sceneByQueryFragment:
@@ -32,28 +32,37 @@ sceneByFragment:
 xPathScrapers:
   sceneSearch:
     common:
-      $videoCard: '//div[contains(@class, "item")]'
+      $videoCard: '//div[contains(@class,"item") and @data-video-id]'
     scene:
-      Title: 
+      Title:
         selector: '$videoCard//strong[@class="title"]/text()'
-      URL: 
-        selector: '$videoCard//a[contains(@class, "popfire")]/@href'
-      Image: 
+        postProcess:
+          - replace:
+              - regex: '^\s+|\s+$'
+                with: ""
+      URL:
+        selector: '$videoCard//a[contains(@class,"popfire")]/@href'
+      Image:
         selector: '$videoCard//img/@src'
 
   sceneScraper:
     scene:
-      # Updated Title selector to check meta tags and common H1 locations
-      Title: 
-        selector: '//div[@class="page-title"]/h1/text()'
+      Title:
+        selector: '(//div[@class="page-title"]/h1)[1]/text()'
+      Details:
+        selector: '(//div[@class="block-details"]//div[@class="info"]/div[@class="item"])[1]/text()'
         postProcess:
           - replace:
-              # Clean up " - Anysex.com" if it's scraped from the meta title
-              - regex: '(?i)\s*-\s*Anysex\.com.*'
+              - regex: '^\s+|\s+$'
                 with: ""
-      Details: '//div[@class="block-details"]//div[@class="info"]/div[@class="item"]/text()'
+      Tags:
+        Name:
+          selector: '//div[contains(@class,"video-tags")]//div[contains(@class,"swiper-slide") and not(contains(@class,"item-cs")) and not(contains(@class,"item-model"))]/a/text()'
+      Performers:
+        Name:
+          selector: '//div[contains(@class,"video-tags")]//div[contains(@class,"item-model")]/a/text()'
       Date:
-        selector: '//script[@type="application/ld+json" and contains(., "uploadDate")]/text()'
+        selector: '//script[@type="application/ld+json" and contains(.,"uploadDate")]/text()'
         postProcess:
           - replace:
               - regex: '.*"uploadDate":\s*"([^"]+)".*'
@@ -61,19 +70,15 @@ xPathScrapers:
               - regex: '(\d{4}-\d{2}-\d{2})T.*'
                 with: $1
           - parseDate: 2006-01-02
-      Image: '//meta[@property="og:image"]/@content'
-      URL: '//meta[@property="og:url"]/@content'
+      URL:
+        selector: '//link[@rel="alternate" and @hreflang="x-default"]/@href'
+      Image:
+        selector: '//meta[@property="og:image"]/@content'
       Studio:
         Name:
-          # Target the title tag as a reliable anchor
-          selector: //title/text()
-          postProcess:
-            - replace:
-                # This regex matches the entire string and replaces it with your static value
-                - regex: '.*'
-                  with: "TubeVideos"
-      Tags:
-        Name: '//div[@class="item-tags-holder"]//a[contains(@href, "/categories/")]/text()'
-      Performers:
-        Name: '//div[contains(@class, "item-model")]/a/text()'
-# Last Updated April 30, 2026
+          fixed: "TubeVideos"
+
+driver:
+  useCDP: true
+  sleep: 5
+# Last Updated July 28, 2026

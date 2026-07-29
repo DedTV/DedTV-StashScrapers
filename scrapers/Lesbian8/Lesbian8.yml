@@ -37,20 +37,15 @@ xPathScrapers:
       Title: 
         selector: '$videoCard//strong[@class="title"]/text()'
       URL: 
-        selector: '$videoCard//a[contains(@class, "popfire")]/@href'
+        selector: '$videoCard//a/@href'
       Image: 
         selector: '$videoCard//img/@src'
 
   sceneScraper:
     scene:
       # Updated Title selector to check meta tags and common H1 locations
-      Title: 
-        selector: '/div[@class="video-holder"]//h1/text()'
-        postProcess:
-          - replace:
-              # Clean up " - Lesbian8.com" if it's scraped from the meta title
-              - regex: '(?i)\s*-\s*Lesbian8\.com.*'
-                with: ""
+      Title:
+        selector: '//meta[@property="og:title"]/@content'      
       Details: '//div[@class="video-info-section"]//p[@class="description"]/text()'
       Date:
         selector: '//script[@type="application/ld+json" and contains(., "uploadDate")]/text()'
@@ -72,8 +67,14 @@ xPathScrapers:
                 # This regex matches the entire string and replaces it with your static value
                 - regex: '.*'
                   with: "TubeVideos"
-      Tags:
-        Name: '//div[@class="item-tags-holder"]//a[contains(@href, "/categories/")]/text()'
+      Tags: 
+        Name:
+          selector: '//meta[@name="keywords"]/@content'
+          split: ", "
       Performers:
         Name: '//div[@class="item-models-holder"]//a/text()'
-                # Last Updated April 30, 2026
+        
+driver:
+  useCDP: true
+        
+# Last Updated April 30, 2026

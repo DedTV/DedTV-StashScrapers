@@ -1,0 +1,64 @@
+name: Xozilla
+
+sceneByName:
+  action: scrapeXPath
+  queryURL: https://www.xozilla.xxx/search/?q={}
+  scraper: sceneSearch
+
+sceneByQueryFragment:
+  action: scrapeXPath
+  queryURL: "{url}"
+  scraper: sceneScraper
+
+sceneByURL:
+  - action: scrapeXPath
+    url:
+      - xozilla.com
+      - xozilla.xxx
+    scraper: sceneScraper
+
+sceneByFragment:
+  action: scrapeXPath
+  scraper: sceneScraper
+  queryURL: https://www.xozilla.xxx/videos/{filename}/
+  queryURLReplace:
+    filename:
+      - regex: '.*\[(\d+)\].*'
+        with: $1
+      - regex: '^.*?(\d+)\..+$'
+        with: $1
+      - regex: .*\.[^\.]+$
+        with:
+
+xPathScrapers:
+  sceneSearch:
+    common:
+      $videoCard: '//a[contains(@class,"item") and @href and contains(@href,"/videos/")]'
+    scene:
+      Title:
+        selector: '$videoCard//strong[@class="title"]/text()'
+      URL:
+        selector: '$videoCard/@href'
+      Image:
+        selector: '$videoCard//img/@data-original'
+
+  sceneScraper:
+    scene:
+      Title:
+        selector: '//div[contains(@class,"headline")]/h1/text()'
+      Details:
+        selector: '//div[@class="block-details"]//div[@class="item"]/em/text()'
+      Tags:
+        Name:
+          selector: '//div[@class="block-details"]//div[@class="item"][contains(.,"Categories:")]/a[contains(@href,"/categories/")]/text()'
+      Studio:
+        Name:
+          fixed: "TubeVideos"
+      Performers:
+        Name:
+          selector: '//div[@class="block-details"]//div[@class="item"][contains(.,"Models:")]/a[contains(@href,"/models/")]/text()'
+      Image:
+        selector: '//meta[@property="og:image"]/@content'
+      URL:
+        selector: '//link[@rel="canonical"]/@href'
+# Last Updated May 25, 2026
